@@ -1,18 +1,20 @@
+import argparse
 import os
+import styles
 from pathlib import Path
 from typing import Iterable
 
 from textual.app import App, ComposeResult
-from textual.containers import HorizontalScroll, VerticalScroll, Vertical
+from textual.containers import HorizontalScroll, VerticalScroll, Vertical, Horizontal
 from textual.screen import Screen
-from textual.widgets import Placeholder, DirectoryTree, Log, Checkbox
+from textual.widgets import Placeholder, DirectoryTree, Log, Checkbox, Button
 
 MEDIA_FILE_EXTENSIONS = ["mp4", "avi", "mkv"]
 
 class Header(Placeholder):
     DEFAULT_CSS = """
     Header {
-        height: 3;
+        height: 1;
         dock: top;
     }
     """
@@ -21,7 +23,7 @@ class Header(Placeholder):
 class Footer(Placeholder):
     DEFAULT_CSS = """
     Footer {
-        height: 3;
+        height: 1;
         dock: bottom;
     }
     """
@@ -35,25 +37,19 @@ class FilteredDirectoryTree(DirectoryTree):
         return None
 
 class DirectoryBrowser(VerticalScroll):
-    DEFAULT_CSS = """
-    Column {
-        height: 0.7fr;
-        width: 1fr;
-        margin: 0 2;
-    }
-    """
 
-    def __init__(self, logger):
+    def __init__(self, logger, cliargs):
         super().__init__()
         self.logger = logger
+        self.cliargs = cliargs
 
     def compose(self) -> ComposeResult:
-        yield FilteredDirectoryTree("./")
+        yield FilteredDirectoryTree(self.cliargs.directory)
 
 
 class FileSelector(VerticalScroll):
-    def __init__(self, logger):
-        super().__init__()
+    def __init__(self, id, logger):
+        super().__init__(id=id)
         self.logger = logger
 
     def update_files(self, directory: Path):
@@ -63,7 +59,7 @@ class FileSelector(VerticalScroll):
         if directory.is_dir():
             for file_path in sorted(directory.iterdir()):
                 if file_path.is_file():
-                    checkbox = Checkbox(file_path.name)
+                    checkbox = Checkbox(label=file_path.name, classes="file-selector-checkbox")
                     checkbox.data = file_path
                     checkbox.value = self.should_select_file(file_path)
                     self.mount(checkbox)
@@ -71,25 +67,23 @@ class FileSelector(VerticalScroll):
     def should_select_file(self, file_path: Path)->bool:
 
         filename, file_extension = os.path.splitext(file_path)
+        file_extension = file_extension.lower()
+        file_extension = file_extension[1:]
 
         if file_extension in MEDIA_FILE_EXTENSIONS:
             return True
 
         return False
 
-
-
-
+class FileSelectorButtonBar(Horizontal):
+    def __init__(self, id, logger):
+        super().__init__(id=id)
+        self.logger = logger
+    def compose(self) -> ComposeResult:
+        yield Button("Movie")
 
 
 class Logger(Log):
-    DEFAULT_CSS = """
-    Column {
-        height: 0.3fr;
-        width: 0.5fr;
-        margin: 0 2;
-    }
-    """
 
     def compose(self) -> ComposeResult:
         yield Log()
@@ -102,47 +96,36 @@ class Logger(Log):
 
 class LeftColumn(Vertical):
 
-    DEFAULT_CSS = """
-    Column {
-        height: 1fr;
-        width: 1fr;
-        margin: 0 2;
-    }
-    """
-    def __init__(self, logger):
+    def __init__(self, logger, cliargs):
         super().__init__()
         self.logger = logger
+        self.cliargs = cliargs
 
     def compose(self) -> ComposeResult:
-        yield DirectoryBrowser(self.logger)
+        yield DirectoryBrowser(self.logger, self.cliargs)
         yield self.logger
 
 class MiddleColumn(Vertical):
-    DEFAULT_CSS = """
-    Column {
-        height: 1fr;
-        width: 1fr;
-        margin: 0 2;
-    }
-    """
     def __init__(self, logger):
         super().__init__()
         self.logger = logger
 
     def compose(self) -> ComposeResult:
-        yield FileSelector(self.logger)
+        yield FileSelector(id="file-selector-container", logger=self.logger)
+        yield FileSelectorButtonBar(id="file-selector-buttonbar", logger=self.logger)
 
 
 class MonikerScreen(Screen):
-    def __init__(self):
+    def __init__(self, cliargs):
         super().__init__()
         self.logger = Logger()
+        self.cliargs = cliargs
 
     def compose(self) -> ComposeResult:
         yield Header(id="Header")
         yield Footer(id="Footer")
         with HorizontalScroll():
-            yield LeftColumn(self.logger)
+            yield LeftColumn(self.logger, self.cliargs)
             yield MiddleColumn(self.logger)
 
     def on_directory_tree_directory_selected(self, event:  DirectoryTree.DirectorySelected) -> None:
@@ -153,9 +136,18 @@ class MonikerScreen(Screen):
         file_selector.update_files(event.path)
 
 class LayoutApp(App):
+    CSS = styles.CSS
+    def __init__(self, cliargs):
+        super().__init__()
+        self.cliargs = cliargs
+
     def on_ready(self) -> None:
-        self.push_screen(MonikerScreen())
+        self.push_screen(MonikerScreen(self.cliargs))
 
 if __name__ == "__main__":
-    app = LayoutApp()
+    parser = argparse.ArgumentParser(prog="moniker", description="moniker moves and renames files")
+    parser.add_argument("directory", default=".", help="starting directory")
+    cliargs = parser.parse_args()
+
+    app = LayoutApp(cliargs=cliargs)
     app.run()
