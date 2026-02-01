@@ -4,9 +4,12 @@ from textual.widgets import Log
 
 class Logger(Log):
 
+    def __init__(self):
+        super().__init__()
+        self.__logwidg = Log()
+
     def compose(self) -> ComposeResult:
-        yield Log()
+        yield self.__logwidg
 
     def on_ready(self) -> None:
-        #log = self.query_one(Log)
-        self.write_line("Hello, World!")
+        self.__logwidg.write_line("Hello, World!")
