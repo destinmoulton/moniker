@@ -1,6 +1,7 @@
 import argparse
 import os
 import styles
+from browser import Browser
 from pathlib import Path
 from typing import Iterable
 
@@ -83,14 +84,6 @@ class FileSelectorButtonBar(Horizontal):
         yield Button("Movie")
 
 
-class Logger(Log):
-
-    def compose(self) -> ComposeResult:
-        yield Log()
-
-    def on_ready(self) -> None:
-        #log = self.query_one(Log)
-        self.write_line("Hello, World!")
 
 
 
