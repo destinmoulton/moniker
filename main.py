@@ -2,6 +2,7 @@ import argparse
 import os
 import styles
 from browser import Browser
+from logger import Logger
 from pathlib import Path
 from typing import Iterable
 
@@ -21,13 +22,6 @@ class Header(Placeholder):
     """
 
 
-class Footer(Placeholder):
-    DEFAULT_CSS = """
-    Footer {
-        height: 1;
-        dock: bottom;
-    }
-    """
 
 class FilteredDirectoryTree(DirectoryTree):
     # Filter to show just the folders
@@ -96,7 +90,6 @@ class LeftColumn(Vertical):
 
     def compose(self) -> ComposeResult:
         yield DirectoryBrowser(self.logger, self.cliargs)
-        yield self.logger
 
 class MiddleColumn(Vertical):
     def __init__(self, logger):
@@ -116,10 +109,11 @@ class MonikerScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header(id="Header")
-        yield Footer(id="Footer")
         with HorizontalScroll():
             yield LeftColumn(self.logger, self.cliargs)
             yield MiddleColumn(self.logger)
+
+        yield self.logger
 
     def on_directory_tree_directory_selected(self, event:  DirectoryTree.DirectorySelected) -> None:
         path = event.path

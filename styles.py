@@ -1,6 +1,6 @@
 CSS = """
     Log {
-        height: 0.5fr;
+        height: 0.2fr;
         width: 1fr;
         border: round orange;
         margin: 0 0;
