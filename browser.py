@@ -3,12 +3,12 @@ import os
 from pathlib import Path, PosixPath
 from typing import Iterable
 from context import Context
-from textual.app import App, ComposeResult
+from textual.app import ComposeResult
 from textual.containers import HorizontalScroll, VerticalScroll, Vertical, Horizontal
 from textual.containers import HorizontalScroll, VerticalScroll, Vertical, Horizontal
 from textual.widgets import Placeholder, DirectoryTree, Log, Checkbox, Button
 
-MEDIA_FILE_EXTENSIONS = ["mp4", "avi", "mkv"]
+MEDIA_FILE_EXTENSIONS = ["mp4", "avi", "mkv", "m4v", "srt"]
 
 class Browser(Horizontal):
     ctx: Context
@@ -36,6 +36,7 @@ class FilteredDirectoryTree(DirectoryTree):
     def on_directory_tree_directory_selected(self, event:  DirectoryTree.DirectorySelected):
         path = event.path
         self.ctx.emit("browser:directory-changed", {'path': path})
+        self.ctx.set_selected_path(str(path))
         self.ctx.logger.write_line(f"Listing: {path}")
 
 
@@ -60,9 +61,10 @@ class FileSelector(VerticalScroll):
 
     def __directory_changed(self, event) -> None:
         path: PosixPath = event['path']
-        self.update_files(path)
+        self.ctx.clear_selected_files()
+        self.update_files_list(path)
 
-    def update_files(self, directory: Path):
+    def update_files_list(self, directory: Path):
         # remove existing checkboxes
         self.query(Checkbox).remove()
 
@@ -70,11 +72,17 @@ class FileSelector(VerticalScroll):
             for file_path in sorted(directory.iterdir()):
                 if file_path.is_file():
                     checkbox = Checkbox(label=file_path.name, classes="file-selector-checkbox")
-                    checkbox.data = file_path
-                    checkbox.value = self.should_select_file(file_path)
+                    checkbox.data = str(file_path.name)
+                    checkbox.value = self.should_preselect_file(file_path)
                     self.mount(checkbox)
 
-    def should_select_file(self, file_path: Path)->bool:
+    def on_checkbox_changed(self, event) -> None:
+        if event.value is True:
+            self.ctx.add_selected_file(event.checkbox.data)
+        else:
+            self.ctx.remove_selected_file(event.checkbox.data)
+
+    def should_preselect_file(self, file_path: Path)->bool:
 
         filename, file_extension = os.path.splitext(file_path)
         file_extension = file_extension.lower()
@@ -94,7 +102,16 @@ class FileSelectorButtonBar(Horizontal):
         self.ctx = ctx
 
     def compose(self) -> ComposeResult:
-        yield Button("Movie")
+        yield Button(label="Rename Movie", id="rename-movie")
+
+    def on_button_pressed(self, event: Button.Pressed)->None:
+        self.ctx.logger.write_line(f"button pressed {event.button.id}")
+
+        type="show"
+        if event.button.id == "rename-movie":
+            type = "movie"
+        params = {"screen":"renamer", "type":type}
+        self.ctx.emit("screen:change", params)
 
 
 class LeftColumn(Vertical):

@@ -1,5 +1,4 @@
 import argparse
-import styles
 from browser import Browser
 from logger import Logger
 from context import Context
@@ -8,6 +7,8 @@ from textual.app import App, ComposeResult
 from textual.containers import HorizontalScroll, VerticalScroll, Vertical, Horizontal
 from textual.screen import Screen
 from textual.widgets import Placeholder, DirectoryTree, Log, Checkbox, Button
+
+from renamer import Renamer
 
 
 class Header(Placeholder):
@@ -25,18 +26,34 @@ class MonikerScreen(Screen):
     def __init__(self, ctx):
         super().__init__()
         self.ctx = ctx
+        self.ctx.on("screen:change", self.__change_screen)
+
+        self.browser = Browser(self.ctx)
+        self.renamer = Renamer(self.ctx)
+        self.renamer.display = False
 
     def compose(self) -> ComposeResult:
         yield Header(id="Header")
-        with HorizontalScroll():
-            yield Browser(self.ctx)
+        with Horizontal(id="screen-container"):
+            yield self.browser
+            yield self.renamer
 
         yield self.ctx.logger
+
+    def __change_screen(self, event: dict):
+        #container = self.query_one("#screen-container")
+        if event["screen"] == "renamer":
+            self.browser.display = False
+            self.renamer.display = True
+        elif event["screen"] == "browser":
+            self.browser.display = True
+            self.renamer.display = False
+
 
 
 class LayoutApp(App):
     ctx: Context
-    CSS = styles.CSS
+    CSS_PATH = "styles.css"
     def __init__(self, ctx):
         super().__init__()
         self.ctx = ctx
