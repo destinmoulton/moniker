@@ -20,3 +20,28 @@ DirectoryBrowser {
     margin:0;
     border: solid red;
 }
+
+#renamer-button-bar{
+    height: 0.1fr;
+}
+#renamer-top-container{
+    height:0.9fr;
+    width:1fr;
+}
+#renamer-left-column{
+    width:0.4fr;
+    height: 1fr;
+    border: round purple;
+}
+#renamer-right-column{
+    width:0.6fr;
+    height: 1fr;
+    border: round blue;
+}
+.renamer-input{
+    border: solid gray;
+}
+.renamer-file-fieldgroup{
+    height: 4;
+    width: 0.9fr;
+}

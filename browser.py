@@ -71,10 +71,13 @@ class FileSelector(VerticalScroll):
         if directory.is_dir():
             for file_path in sorted(directory.iterdir()):
                 if file_path.is_file():
+                    is_checked = self.should_preselect_file(file_path)
                     checkbox = Checkbox(label=file_path.name, classes="file-selector-checkbox")
                     checkbox.data = str(file_path.name)
-                    checkbox.value = self.should_preselect_file(file_path)
+                    checkbox.value = is_checked
                     self.mount(checkbox)
+                    if is_checked:
+                        self.ctx.add_selected_file(str(file_path.name))
 
     def on_checkbox_changed(self, event) -> None:
         if event.value is True:

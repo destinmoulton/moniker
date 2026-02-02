@@ -49,6 +49,8 @@ class MonikerScreen(Screen):
             self.browser.display = True
             self.renamer.display = False
 
+        self.ctx.emit("screen:change:complete", event)
+
 
 
 class LayoutApp(App):

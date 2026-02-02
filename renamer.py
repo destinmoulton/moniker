@@ -1,9 +1,12 @@
-from context import Context
-from textual.containers import Horizontal
-from textual.app import ComposeResult
-from textual.widgets import Label, Button
+from textual import events
 
-class Renamer(Horizontal):
+from context import Context
+from textual.containers import Container, Horizontal, Vertical, VerticalScroll
+
+from textual.app import ComposeResult
+from textual.widgets import Label, Button, Input
+
+class Renamer(Vertical):
     ctx: Context
 
     def __init__(self, ctx):
@@ -11,7 +14,11 @@ class Renamer(Horizontal):
         self.ctx = ctx
 
     def compose(self) -> ComposeResult:
-        yield Label("test")
+        with Horizontal(id="renamer-top-container"):
+            yield RenamerLeftColumn(id="renamer-left-column", ctx=self.ctx)
+            with Vertical(id="renamer-right-column"):
+                yield RenamerFileFields(id="renamer-file-fields-container", ctx=self.ctx)
+
         yield RenamerButtonBar(id="renamer-button-bar", ctx=self.ctx)
 
 class RenamerButtonBar(Horizontal):
@@ -30,3 +37,35 @@ class RenamerButtonBar(Horizontal):
             params = {"screen":"browser"}
             self.ctx.emit("screen:change", params)
 
+class RenamerLeftColumn(VerticalScroll):
+    ctx: Context
+    def __init__(self, id, ctx):
+        super().__init__(id=id)
+        self.ctx = ctx
+
+    def compose(self) -> ComposeResult:
+        yield Label("Identifier Regex")
+        yield Input(id="renamer-input-regex", classes="renamer-input", value="S01E01")
+
+class RenamerFileFields(VerticalScroll):
+    ctx: Context
+    def __init__(self, id, ctx):
+        super().__init__(id=id)
+        self.ctx = ctx
+
+    def on_show(self) -> None:
+        self.__build_fields()
+
+    def __build_fields(self)->None:
+        # Clear the verticals from the container
+        self.query(Vertical).remove()
+
+        self.ctx.debug_selected_files()
+        for fidx, file_name in enumerate(self.ctx.selected["files"]):
+            fieldgroup = Vertical(classes="renamer-file-fieldgroup")
+            self.mount(fieldgroup)
+
+            fieldgroup.mount(Label(file_name))
+            fieldgroup.mount(Input(id=f"renamer-file-{fidx}", classes="renamer-input", value=file_name))
+
+        self.refresh(layout=True)
