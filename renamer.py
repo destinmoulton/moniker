@@ -1,8 +1,7 @@
-from textual import events
-
+import re
 from context import Context
-from textual.containers import Container, Horizontal, Vertical, VerticalScroll
 
+from textual.containers import Container, Horizontal, Vertical, VerticalScroll
 from textual.app import ComposeResult
 from textual.widgets import Label, Button, Input
 
@@ -39,19 +38,29 @@ class RenamerButtonBar(Horizontal):
 
 class RenamerLeftColumn(VerticalScroll):
     ctx: Context
+    default_seasep_regex: str =  "[Ss](\d+)[Ee](\d+)"
+
     def __init__(self, id, ctx):
         super().__init__(id=id)
         self.ctx = ctx
 
     def compose(self) -> ComposeResult:
         yield Label("Identifier Regex")
-        yield Input(id="renamer-input-regex", classes="renamer-input", value="S01E01")
+        with Vertical():
+            yield Input(id="renamer-input-regex", classes="renamer-input", value=self.default_seasep_regex)
+
+    def on_input_changed(self, event):
+        if event.input.id == "renamer-input-regex":
+            self.ctx.regex = event.value
+            self.ctx.emit("renamer:regex:changed", {"value": event.value})
+
 
 class RenamerFileFields(VerticalScroll):
     ctx: Context
     def __init__(self, id, ctx):
         super().__init__(id=id)
         self.ctx = ctx
+        self.ctx.on("renamer:regex:changed", self.__regex_changed)
 
     def on_show(self) -> None:
         self.__build_fields()
@@ -70,3 +79,41 @@ class RenamerFileFields(VerticalScroll):
             self.ctx.logger.write_line(f"{fid}: {file.path}")
 
         self.refresh(layout=True)
+        self.update_file_fields()
+
+    def __regex_changed(self, event)->None:
+        self.update_file_fields()
+
+    def update_file_fields(self)->None:
+        regex = re.compile(self.ctx.regex)
+        for fid, file in self.ctx.selected["files"].items():
+            finput = self.query_one(f"#renamer-file-{fid}")
+            fparts = file.parts.copy()
+
+            replacement_string = ""
+            replacement_idx = 0
+            found = False
+            for pidx, part in enumerate(fparts):
+                match = regex.search(part)
+
+                if match:
+                    found = True
+
+                    seasnum = int(match.group(1))
+                    epnum = int(match.group(2))
+                    season = str(seasnum)
+                    if(seasnum<10):
+                        season = "0" + season
+                    episode = str(epnum)
+                    if(epnum<10):
+                        episode = "0" + episode
+                    replacement_idx = pidx
+                    replacement_string = f"S{season}E{episode}"
+
+            if found:
+                fparts = fparts[:replacement_idx]
+                fparts.append(replacement_string)
+                fparts.append(file.ext)
+
+            # Build the input value
+            finput.value = ".".join(fparts)

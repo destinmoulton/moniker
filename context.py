@@ -14,6 +14,7 @@ class Context:
         "path":"",
         "files":{}
     }
+    regex: str = ""
 
     def on(self, event_name, event_fun):
         """ Register an event """

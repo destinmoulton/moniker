@@ -10,7 +10,7 @@ class File:
         self.path = path
 
         # create a friendlier named local version of the extension
-        self.ext = path.suffix
+        self.ext = path.suffix.lstrip(".")
 
         self.__split_parts()
         self.__generate_id()
