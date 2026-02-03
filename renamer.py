@@ -61,11 +61,12 @@ class RenamerFileFields(VerticalScroll):
         self.query(Vertical).remove()
 
         self.ctx.debug_selected_files()
-        for fidx, file_name in enumerate(self.ctx.selected["files"]):
+        for fid, file in self.ctx.selected["files"].items():
             fieldgroup = Vertical(classes="renamer-file-fieldgroup")
             self.mount(fieldgroup)
 
-            fieldgroup.mount(Label(file_name))
-            fieldgroup.mount(Input(id=f"renamer-file-{fidx}", classes="renamer-input", value=file_name))
+            fieldgroup.mount(Label(file.path.name))
+            fieldgroup.mount(Input(id=f"renamer-file-{fid}", classes="renamer-input", value=file.path.name))
+            self.ctx.logger.write_line(f"{fid}: {file.path}")
 
         self.refresh(layout=True)
