@@ -12,7 +12,8 @@ class Context:
     events: dict[str, list] = {}
     selected = {
         "path":"",
-        "files":{}
+        "files":{},
+        "regex":"movieyear"
     }
     regex: str = ""
 
@@ -49,4 +50,8 @@ class Context:
 
     def clear_selected_files(self):
         self.selected['files'] = {}
+
+    def set_selected_regex(self, regex: str):
+        self.selected['regex'] = regex
+
 

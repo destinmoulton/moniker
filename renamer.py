@@ -1,9 +1,16 @@
 import re
+
+from textual import events
+
 from context import Context
 
 from textual.containers import Container, Horizontal, Vertical, VerticalScroll
 from textual.app import ComposeResult
-from textual.widgets import Label, Button, Input
+from textual.widgets import Label, Button, Input, RadioSet, RadioButton, Checkbox
+
+FILE_PARTS_TO_IGNORE = [
+    "1080p", "720p", "webrip", "amzn", "aac", "eng", "x264", "x265", "bluray", "xvid", "yify"
+]
 
 class Renamer(Vertical):
     ctx: Context
@@ -20,6 +27,7 @@ class Renamer(Vertical):
 
         yield RenamerButtonBar(id="renamer-button-bar", ctx=self.ctx)
 
+
 class RenamerButtonBar(Horizontal):
     ctx: Context
 
@@ -30,29 +38,82 @@ class RenamerButtonBar(Horizontal):
     def compose(self) -> ComposeResult:
         yield Button(label="Back", id="renamer-button-back")
 
-
     def on_button_pressed(self, event: Button.Pressed)->None:
         if event.button.id == "renamer-button-back":
             params = {"screen":"browser"}
             self.ctx.emit("screen:change", params)
 
+
 class RenamerLeftColumn(VerticalScroll):
     ctx: Context
-    default_seasep_regex: str =  "[Ss](\d+)[Ee](\d+)"
+    default_regex: str =  {
+        "seasep":"[Ss](\d+)[Ee](\d+)",
+        "movieyear":"(19[0-9]{2}|2[0-9]{3})"
+    }
 
     def __init__(self, id, ctx):
         super().__init__(id=id)
         self.ctx = ctx
+        self.regex_input = Input(id="renamer-input-regex", classes="renamer-input", value=self.default_regex[self.ctx.selected['regex']])
 
     def compose(self) -> ComposeResult:
         yield Label("Identifier Regex")
+        with RadioSet():
+            yield RadioButton("Movie (Year)", id="regex-radio-movieyear", value=(self.ctx.selected['regex']=="movieyear"))
+            yield RadioButton("Season and Episode (S##E##)", id="regex-radio-seasep", value=(self.ctx.selected['regex']=="seasep"))
         with Vertical():
-            yield Input(id="renamer-input-regex", classes="renamer-input", value=self.default_seasep_regex)
+            yield self.regex_input
+        yield FilePartSelector(id="renamer-fileparts-wrapper", ctx=self.ctx)
 
     def on_input_changed(self, event):
         if event.input.id == "renamer-input-regex":
             self.ctx.regex = event.value
             self.ctx.emit("renamer:regex:changed", {"value": event.value})
+
+    def on_radio_set_changed(self, event):
+        if event.pressed.id == "regex-radio-seasep":
+            sel = "seasep"
+            self.ctx.set_selected_regex(sel)
+            self.regex_input.value = self.default_regex[sel]
+        elif event.pressed.id == "regex-radio-movieyear":
+            sel = "movieyear"
+            self.ctx.set_selected_regex(sel)
+            self.regex_input.value = self.default_regex[sel]
+
+
+class FilePartSelector(Vertical):
+    ctx: Context
+    def __init__(self, id, ctx):
+        super().__init__(id=id)
+        self.ctx = ctx
+        self.container = VerticalScroll(id="renamer-fileparts-container")
+
+    def compose(self)->ComposeResult:
+        yield Label("Select Filename Parts")
+        yield self.container
+
+    def on_show(self) -> None:
+        self.__update_file_part_checkboxes()
+
+    def __update_file_part_checkboxes(self)->None:
+        # build a set out of the possible file parts
+        possibles = []
+        for fid, file in self.ctx.selected["files"].items():
+            for part in file.parts:
+                tmppart = part.lower()
+                if tmppart not in FILE_PARTS_TO_IGNORE:
+                    if part not in possibles:
+                        possibles.append(part)
+        self.ctx.logger.write_line(f"Found possible parts {possibles}")
+        # remove the current set of checkboxes
+        checks = self.container.query(Checkbox)
+        for check in checks:
+            check.remove()
+
+        for pidx, possible in enumerate(possibles):
+            chk = Checkbox(label=possible)
+            chk.data = possible
+            self.container.mount(chk)
 
 
 class RenamerFileFields(VerticalScroll):
@@ -85,7 +146,13 @@ class RenamerFileFields(VerticalScroll):
         self.update_file_fields()
 
     def update_file_fields(self)->None:
-        regex = re.compile(self.ctx.regex)
+        regex = None
+
+        try:
+            regex = re.compile(self.ctx.regex)
+        except re.error as e:
+            self.ctx.logger.write_line(f"ERROR: Invalid regex {e}");
+
         for fid, file in self.ctx.selected["files"].items():
             finput = self.query_one(f"#renamer-file-{fid}")
             fparts = file.parts.copy()
@@ -94,26 +161,37 @@ class RenamerFileFields(VerticalScroll):
             replacement_idx = 0
             found = False
             for pidx, part in enumerate(fparts):
-                match = regex.search(part)
+                if regex:
+                    match = regex.search(part)
 
-                if match:
-                    found = True
+                    if match:
+                        found = True
 
-                    seasnum = int(match.group(1))
-                    epnum = int(match.group(2))
-                    season = str(seasnum)
-                    if(seasnum<10):
-                        season = "0" + season
-                    episode = str(epnum)
-                    if(epnum<10):
-                        episode = "0" + episode
-                    replacement_idx = pidx
-                    replacement_string = f"S{season}E{episode}"
+
+                        if self.ctx.selected['regex']=="seasep":
+                            if len(match.groups()) == 2:
+                                seasnum = int(match.group(1))
+                                epnum = int(match.group(2))
+                                season = str(seasnum)
+                                if(seasnum<10):
+                                    season = "0" + season
+                                episode = str(epnum)
+                                if(epnum<10):
+                                    episode = "0" + episode
+                                replacement_string = f"S{season}E{episode}"
+                        elif self.ctx.selected['regex']=="movieyear":
+                            if len(match.groups()) == 1:
+                                year = match.group(1)
+                                replacement_string = f"{year}"
+
+                        replacement_idx = pidx
 
             if found:
                 fparts = fparts[:replacement_idx]
                 fparts.append(replacement_string)
                 fparts.append(file.ext)
+
+
 
             # Build the input value
             finput.value = ".".join(fparts)

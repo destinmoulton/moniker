@@ -25,6 +25,8 @@ class Browser(Horizontal):
 
 class FilteredDirectoryTree(DirectoryTree):
     ctx: Context
+    ICON_NODE = "🗀 "
+    ICON_NODE_EXPANDED = "🗀 "
 
     def __init__(self, ctx):
         super().__init__(ctx.cliargs.directory)
