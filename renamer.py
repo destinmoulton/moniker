@@ -1,5 +1,5 @@
 import re
-
+from typing import Tuple
 from textual import events
 
 from context import Context
@@ -165,26 +165,12 @@ class RenamerFileFields(VerticalScroll):
                     match = regex.search(part)
 
                     if match:
-                        found = True
-
-
-                        if self.ctx.selected['regex']=="seasep":
-                            if len(match.groups()) == 2:
-                                seasnum = int(match.group(1))
-                                epnum = int(match.group(2))
-                                season = str(seasnum)
-                                if(seasnum<10):
-                                    season = "0" + season
-                                episode = str(epnum)
-                                if(epnum<10):
-                                    episode = "0" + episode
-                                replacement_string = f"S{season}E{episode}"
-                        elif self.ctx.selected['regex']=="movieyear":
-                            if len(match.groups()) == 1:
-                                year = match.group(1)
-                                replacement_string = f"{year}"
-
                         replacement_idx = pidx
+                        if self.ctx.selected['regex']=="seasep":
+                            found, replacement_string = self.__match_season_episode(match)
+                        elif self.ctx.selected['regex']=="movieyear":
+                            found, replacement_string = self.__match_movie_year(match)
+
 
             if found:
                 fparts = fparts[:replacement_idx]
@@ -192,6 +178,26 @@ class RenamerFileFields(VerticalScroll):
                 fparts.append(file.ext)
 
 
-
             # Build the input value
             finput.value = ".".join(fparts)
+
+
+    def __match_season_episode(self, match:re.Match)->Tuple[bool, str]:
+        if len(match.groups()) == 2:
+            seasnum = int(match.group(1))
+            epnum = int(match.group(2))
+            season = str(seasnum)
+            if (seasnum < 10):
+                season = "0" + season
+            episode = str(epnum)
+            if (epnum < 10):
+                episode = "0" + episode
+            return True, f"S{season}E{episode}"
+        return False, ""
+
+
+    def __match_movie_year(self, match:re.Match)->Tuple[bool, str]:
+        if len(match.groups()) == 1:
+            year = match.group(1)
+            return True, f"{year}"
+        return False, ""
