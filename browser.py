@@ -2,6 +2,9 @@
 import os
 from pathlib import Path, PosixPath
 from typing import Iterable
+
+from textual.geometry import Region
+
 from context import Context, MediaType
 from file import File
 from textual.app import ComposeResult
@@ -75,12 +78,15 @@ class FileSelector(VerticalScroll):
             for file_path in sorted(directory.iterdir()):
                 if file_path.is_file():
                     file = File(file_path)
-                    is_checked = self.should_preselect_file(file_path)
-                    checkbox = Checkbox(label=file_path.name, classes="file-selector-checkbox")
+                    is_mediafile = self.should_preselect_file(file_path)
+                    classes = ["file-selector-checkbox"]
+                    if is_mediafile:
+                        classes.append("file-selector-checkbox-mediafile")
+                    checkbox = Checkbox(label=file_path.name, classes=" ".join(classes))
                     checkbox.data = file
-                    checkbox.value = is_checked
+                    checkbox.value = is_mediafile
                     self.mount(checkbox)
-                    if is_checked:
+                    if is_mediafile:
                         self.ctx.add_selected_file(file)
 
     def on_checkbox_changed(self, event) -> None:
@@ -107,24 +113,34 @@ class FileSelectorButtonBar(Horizontal):
     def __init__(self, id, ctx):
         super().__init__(id=id)
         self.ctx = ctx
+        self.visible = False
+        self.ctx.on("browser:directory-changed", self.__directory_changed)
 
     def compose(self) -> ComposeResult:
-        yield Button(label="Move Movie", id="rename-movie")
-        yield Button(label="Move Show Season", id="rename-showseason")
+        yield Button(label="Move Movie",
+                     classes="browser-button-move",
+                     variant="primary",
+                     id="button-move-movie")
+        yield Button(label="Move Show Episodes",
+                     classes="browser-button-move",
+                     variant="success",
+                     id="button-move-show")
 
     def on_button_pressed(self, event: Button.Pressed)->None:
-        self.ctx.logger.write_line(f"button pressed {event.button.id}")
 
-        type="show"
-        if event.button.id == "rename-movie":
-            type = "movie"
+        type= MediaType.SHOW
+        if event.button.id == "button-move-movie":
+            type = MediaType.MOVIE
             self.ctx.set_selected_mediatype(MediaType.MOVIE)
-        elif event.button.id == "rename-showseason":
-            type = "showseason"
+        elif event.button.id == "button-move-show":
+            type = MediaType.SHOW
             self.ctx.set_selected_mediatype(MediaType.SHOW)
 
         params = {"screen":"renamer", "type":type}
         self.ctx.emit("screen:change", params)
+
+    def __directory_changed(self, event: DirectoryTree.DirectorySelected) -> None:
+        self.visible = True
 
 
 class LeftColumn(Vertical):

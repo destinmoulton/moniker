@@ -33,7 +33,7 @@ class MonikerScreen(Screen):
         self.renamer.display = False
 
     def compose(self) -> ComposeResult:
-        yield Header(id="Header")
+        yield Header(id="Header", label="Moniker")
         with Horizontal(id="screen-container"):
             yield self.browser
             yield self.renamer

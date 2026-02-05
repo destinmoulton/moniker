@@ -61,7 +61,6 @@ class RenamerLeftColumn(VerticalScroll):
     def compose(self) -> ComposeResult:
         yield Label("Identifier Regex")
         with RadioSet():
-            self.ctx.logger.write(f"current mediatype {self.ctx.selected['mediatype']}")
             yield RadioButton("Movie - Year", classes="mover-radio-mediatype", id="mover-radio-movie", value=(self.ctx.selected["mediatype"] is MediaType.MOVIE))
             yield RadioButton("Show - Season and Episode (S##E##)", classes="mover-radio-mediatype", id="mover-radio-show", value=(self.ctx.selected["mediatype"] is MediaType.SHOW))
         with Vertical():

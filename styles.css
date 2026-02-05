@@ -9,16 +9,21 @@ DirectoryBrowser {
 }
 #file-selector-container {
     border: round blue;
-    height: 0.9fr;
+    height: 0.85fr;
 }
 #file-selector-buttonbar{
     border: round purple;
-    height: 0.1fr;
+    height: 0.15fr;
 }
 .file-selector-checkbox {
     padding: 0;
     margin:0;
-    border: solid red;
+}
+.file-selector-checkbox-mediafile{
+    border: solid green;
+}
+.browser-button-move {
+    margin-right:1;
 }
 
 #renamer-button-bar{
