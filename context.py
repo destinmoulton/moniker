@@ -1,9 +1,14 @@
 import argparse
+from enum import Enum
 from pathlib import PosixPath
 from typing import Callable
 from logger import Logger
 from file import File
 from pathlib import Path
+
+class MediaType(Enum):
+    MOVIE = "movie"
+    SHOW = "show"
 
 class Context:
     """ Shared context object"""
@@ -13,7 +18,12 @@ class Context:
     selected = {
         "path":"",
         "files":{},
-        "regex":"movieyear"
+        "mediatype":MediaType.MOVIE,
+    }
+    possible = {
+        "season":"",
+        "year":"",
+        "nameparts":[]
     }
     regex: str = ""
 
@@ -51,7 +61,14 @@ class Context:
     def clear_selected_files(self):
         self.selected['files'] = {}
 
-    def set_selected_regex(self, regex: str):
-        self.selected['regex'] = regex
+    def set_selected_mediatype(self, mediatype: MediaType):
+        self.selected['mediatype'] = mediatype
 
+    def set_possible_season(self, season: str):
+        self.possible['season'] = season
 
+    def set_possible_year(self, year: str):
+        self.possible['year'] = year
+
+    def set_possible_nameparts(self, name_parts: list):
+        self.possible['nameparts'] = name_parts

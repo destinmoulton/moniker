@@ -2,7 +2,7 @@
 import os
 from pathlib import Path, PosixPath
 from typing import Iterable
-from context import Context
+from context import Context, MediaType
 from file import File
 from textual.app import ComposeResult
 from textual.containers import HorizontalScroll, VerticalScroll, Vertical, Horizontal
@@ -109,7 +109,8 @@ class FileSelectorButtonBar(Horizontal):
         self.ctx = ctx
 
     def compose(self) -> ComposeResult:
-        yield Button(label="Rename Movie", id="rename-movie")
+        yield Button(label="Move Movie", id="rename-movie")
+        yield Button(label="Move Show Season", id="rename-showseason")
 
     def on_button_pressed(self, event: Button.Pressed)->None:
         self.ctx.logger.write_line(f"button pressed {event.button.id}")
@@ -117,6 +118,11 @@ class FileSelectorButtonBar(Horizontal):
         type="show"
         if event.button.id == "rename-movie":
             type = "movie"
+            self.ctx.set_selected_mediatype(MediaType.MOVIE)
+        elif event.button.id == "rename-showseason":
+            type = "showseason"
+            self.ctx.set_selected_mediatype(MediaType.SHOW)
+
         params = {"screen":"renamer", "type":type}
         self.ctx.emit("screen:change", params)
 
