@@ -14,7 +14,7 @@ FILE_PARTS_TO_IGNORE = [
     "1080p", "720p", "webrip", "amzn", "aac", "eng", "x264", "x265", "bluray", "xvid", "yify"
 ]
 
-class Renamer(Vertical):
+class Mover(Vertical):
     ctx: Context
 
     def __init__(self, ctx):
@@ -22,15 +22,15 @@ class Renamer(Vertical):
         self.ctx = ctx
 
     def compose(self) -> ComposeResult:
-        with Horizontal(id="renamer-top-container"):
-            yield RenamerLeftColumn(id="renamer-left-column", ctx=self.ctx)
-            with Vertical(id="renamer-right-column"):
-                yield RenamerFileFields(id="renamer-file-fields-container", ctx=self.ctx)
+        with Horizontal(id="mover-top-container"):
+            yield MoverLeftColumn(id="mover-left-column", ctx=self.ctx)
+            with Vertical(id="mover-right-column"):
+                yield MoverFileFields(id="mover-file-fields-container", ctx=self.ctx)
 
-        yield RenamerButtonBar(id="renamer-button-bar", ctx=self.ctx)
+        yield MoverButtonBar(id="mover-button-bar", ctx=self.ctx)
 
 
-class RenamerButtonBar(Horizontal):
+class MoverButtonBar(Horizontal):
     ctx: Context
 
     def __init__(self, id, ctx):
@@ -38,25 +38,29 @@ class RenamerButtonBar(Horizontal):
         self.ctx = ctx
 
     def compose(self) -> ComposeResult:
-        yield Button(label="Back", id="renamer-button-back")
+        yield Button(label="Back", id="mover-button-back")
+        yield Button(label="Next", id="mover-button-next", variant="success")
 
     def on_button_pressed(self, event: Button.Pressed)->None:
-        if event.button.id == "renamer-button-back":
+        if event.button.id == "mover-button-back":
             params = {"screen":"browser"}
+            self.ctx.emit("screen:change", params)
+        elif event.button.id =="mover-button-next":
+            params = {"screen":"destination"}
             self.ctx.emit("screen:change", params)
 
 
-class RenamerLeftColumn(VerticalScroll):
+class MoverLeftColumn(VerticalScroll):
     ctx: Context
     default_regex: str =  {
-        MediaType.SHOW:"[Ss](\d+)[Ee](\d+)",
-        MediaType.MOVIE:"(19[0-9]{2}|2[0-9]{3})"
+        MediaType.SHOW:'[Ss](\d+)[Ee](\d+)',
+        MediaType.MOVIE:'(19[0-9]{2}|2[0-9]{3})'
     }
 
     def __init__(self, id, ctx):
         super().__init__(id=id)
         self.ctx = ctx
-        self.regex_input = Input(id="renamer-input-regex", classes="renamer-input", value=self.default_regex[self.ctx.selected['mediatype']])
+        self.regex_input = Input(id="mover-input-regex", classes="mover-input", value=self.default_regex[self.ctx.selected['mediatype']])
 
     def compose(self) -> ComposeResult:
         yield Label("Identifier Regex")
@@ -70,9 +74,9 @@ class RenamerLeftColumn(VerticalScroll):
         self.__set_active_mediatype()
 
     def on_input_changed(self, event):
-        if event.input.id == "renamer-input-regex":
+        if event.input.id == "mover-input-regex":
             self.ctx.regex = event.value
-            self.ctx.emit("renamer:regex:changed", {"value": event.value})
+            self.ctx.emit("mover:regex:changed", {"value": event.value})
 
     def on_radio_set_changed(self, event):
         self.__handle_change_mediatype()
@@ -108,7 +112,7 @@ class FilePartSelector(Vertical):
     def __init__(self, id, ctx):
         super().__init__(id=id)
         self.ctx = ctx
-        self.container = VerticalScroll(id="renamer-fileparts-container")
+        self.container = VerticalScroll(id="mover-fileparts-container")
 
     def compose(self)->ComposeResult:
         yield Label("Select Filename Parts")
@@ -138,12 +142,12 @@ class FilePartSelector(Vertical):
             self.container.mount(chk)
 
 
-class RenamerFileFields(VerticalScroll):
+class MoverFileFields(VerticalScroll):
     ctx: Context
     def __init__(self, id, ctx):
         super().__init__(id=id)
         self.ctx = ctx
-        self.ctx.on("renamer:regex:changed", self.__regex_changed)
+        self.ctx.on("mover:regex:changed", self.__regex_changed)
 
     def on_show(self) -> None:
         self.__build_fields()
@@ -154,11 +158,11 @@ class RenamerFileFields(VerticalScroll):
 
         self.ctx.debug_selected_files()
         for fid, file in self.ctx.selected["files"].items():
-            fieldgroup = Vertical(classes="renamer-file-fieldgroup")
+            fieldgroup = Vertical(classes="mover-file-fieldgroup")
             self.mount(fieldgroup)
 
             fieldgroup.mount(Label(file.path.name))
-            fieldgroup.mount(Input(id=f"renamer-file-{fid}", classes="renamer-input", value=file.path.name))
+            fieldgroup.mount(Input(id=f"mover-file-{fid}", classes="mover-input", value=file.path.name))
 
         self.refresh(layout=True)
         self.update_file_fields()
@@ -175,7 +179,7 @@ class RenamerFileFields(VerticalScroll):
             self.ctx.logger.write_line(f"ERROR: Invalid regex {e}");
 
         for fid, file in self.ctx.selected["files"].items():
-            finput = self.query_one(f"#renamer-file-{fid}")
+            finput = self.query_one(f"#mover-file-{fid}")
             fparts = file.parts.copy()
 
             replacement_string = ""

@@ -136,7 +136,7 @@ class FileSelectorButtonBar(Horizontal):
             type = MediaType.SHOW
             self.ctx.set_selected_mediatype(MediaType.SHOW)
 
-        params = {"screen":"renamer", "type":type}
+        params = {"screen":"mover", "type":type}
         self.ctx.emit("screen:change", params)
 
     def __directory_changed(self, event: DirectoryTree.DirectorySelected) -> None:

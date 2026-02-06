@@ -1,5 +1,6 @@
 import argparse
 from browser import Browser
+from destination import Destination
 from logger import Logger
 from context import Context
 
@@ -8,7 +9,7 @@ from textual.containers import HorizontalScroll, VerticalScroll, Vertical, Horiz
 from textual.screen import Screen
 from textual.widgets import Placeholder, DirectoryTree, Log, Checkbox, Button
 
-from renamer import Renamer
+from mover import Mover
 
 
 class Header(Placeholder):
@@ -29,25 +30,34 @@ class MonikerScreen(Screen):
         self.ctx.on("screen:change", self.__change_screen)
 
         self.browser = Browser(self.ctx)
-        self.renamer = Renamer(self.ctx)
-        self.renamer.display = False
+        self.mover = Mover(self.ctx)
+        self.destination = Destination(self.ctx)
+        self.mover.display = False
+        self.destination.display = False
 
     def compose(self) -> ComposeResult:
         yield Header(id="Header", label="Moniker")
         with Horizontal(id="screen-container"):
             yield self.browser
-            yield self.renamer
+            yield self.mover
+            yield self.destination
 
         yield self.ctx.logger
 
     def __change_screen(self, event: dict):
         #container = self.query_one("#screen-container")
-        if event["screen"] == "renamer":
+        if event["screen"] == "mover":
             self.browser.display = False
-            self.renamer.display = True
+            self.mover.display = True
+            self.destination.display = False
         elif event["screen"] == "browser":
             self.browser.display = True
-            self.renamer.display = False
+            self.mover.display = False
+            self.destination.display = False
+        elif event["screen"] == "destination":
+            self.browser.display = False
+            self.mover.display = False
+            self.destination.display = True
 
         self.ctx.emit("screen:change:complete", event)
 

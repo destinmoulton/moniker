@@ -26,27 +26,37 @@ DirectoryBrowser {
     margin-right:1;
 }
 
-#renamer-button-bar{
-    height: 0.1fr;
+#mover-button-bar{
+    height: 0.15fr;
+    border: solid orange;
 }
-#renamer-top-container{
-    height:0.9fr;
+#mover-top-container{
+    height:0.85fr;
     width:1fr;
 }
-#renamer-left-column{
+#mover-left-column{
     width:0.4fr;
     height: 1fr;
     border: round purple;
 }
-#renamer-right-column{
+#mover-right-column{
     width:0.6fr;
     height: 1fr;
     border: round blue;
 }
-.renamer-input{
+.mover-input{
     border: solid gray;
 }
-.renamer-file-fieldgroup{
+.mover-file-fieldgroup{
     height: 4;
     width: 0.9fr;
+}
+
+#destination-top-container{
+    height: 0.85fr;
+    border: solid blue;
+}
+#destination-button-bar{
+    height: 0.15fr;
+    border: solid orange;
 }
