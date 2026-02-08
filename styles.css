@@ -7,6 +7,10 @@ Log {
 DirectoryBrowser {
     border: round green;
 }
+
+.settingsform-input {
+    border: solid blue;
+}
 #file-selector-container {
     border: round blue;
     height: 0.85fr;

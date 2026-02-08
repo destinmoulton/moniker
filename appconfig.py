@@ -28,6 +28,12 @@ class AppConfig:
         self.cfgparser.set('paths', 'shows', '')
         self.save()
 
+    def get(self, section, setting):
+        return self.cfgparser[section][setting]
+
+    def set(self, section, setting, value):
+        self.cfgparser.set(section, setting, value)
+
     def save(self):
         with open(self.fullpath, 'w') as f:
             self.cfgparser.write(f)

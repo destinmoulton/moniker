@@ -35,7 +35,7 @@ class MonikerScreen(Screen):
         self.browser = Browser(self.ctx)
         self.mover = Mover(self.ctx)
         self.destination = Destination(self.ctx)
-        self.mover.settingsform = False
+        self.settingsform.display = False
         self.mover.display = False
         self.destination.display = False
 
