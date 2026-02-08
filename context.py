@@ -5,6 +5,7 @@ from typing import Callable
 from logger import Logger
 from file import File
 from pathlib import Path
+from appconfig import AppConfig
 
 class MediaType(Enum):
     MOVIE = "movie"
@@ -13,6 +14,7 @@ class MediaType(Enum):
 class Context:
     """ Shared context object"""
     logger: Logger
+    config: AppConfig
     cliargs: argparse.Namespace
     events: dict[str, list] = {}
     selected = {
