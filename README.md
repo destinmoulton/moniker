@@ -1,3 +1,15 @@
+# Config
+
+A config file will be generated in your `$XDG_CONFIG_HOME` path (`$HOME/.config`):
+
+```shell
+$HOME/.config/config.ini
+---
+[paths]
+movies = 
+shows = 
+```
+
 # Python Notes
 ## venv
 Start the environment:
