@@ -14,7 +14,7 @@ FILE_PARTS_TO_IGNORE = [
     "1080p", "720p", "webrip", "amzn", "aac", "eng", "x264", "x265", "bluray", "xvid", "yify"
 ]
 
-class Mover(Vertical):
+class Parser(Vertical):
     ctx: Context
 
     def __init__(self, ctx):
@@ -22,15 +22,15 @@ class Mover(Vertical):
         self.ctx = ctx
 
     def compose(self) -> ComposeResult:
-        with Horizontal(id="mover-top-container"):
-            yield MoverLeftColumn(id="mover-left-column", ctx=self.ctx)
-            with Vertical(id="mover-right-column"):
-                yield MoverFileFields(id="mover-file-fields-container", ctx=self.ctx)
+        with Horizontal(id="parser-top-container"):
+            yield ParserLeftColumn(id="parser-left-column", ctx=self.ctx)
+            with Vertical(id="parser-right-column"):
+                yield ParserFileFields(id="parser-file-fields-container", ctx=self.ctx)
 
-        yield MoverButtonBar(id="mover-button-bar", ctx=self.ctx)
+        yield ParserButtonBar(id="parser-button-bar", ctx=self.ctx)
 
 
-class MoverButtonBar(Horizontal):
+class ParserButtonBar(Horizontal):
     ctx: Context
 
     def __init__(self, id, ctx):
@@ -38,19 +38,19 @@ class MoverButtonBar(Horizontal):
         self.ctx = ctx
 
     def compose(self) -> ComposeResult:
-        yield Button(label="Back", id="mover-button-back")
-        yield Button(label="Next", id="mover-button-next", variant="success")
+        yield Button(label="Back", id="parser-button-back")
+        yield Button(label="Next", id="parser-button-next", variant="success")
 
     def on_button_pressed(self, event: Button.Pressed)->None:
-        if event.button.id == "mover-button-back":
+        if event.button.id == "parser-button-back":
             params = {"screen":"browser"}
             self.ctx.emit("screen:change", params)
-        elif event.button.id =="mover-button-next":
+        elif event.button.id =="parser-button-next":
             params = {"screen":"destination"}
             self.ctx.emit("screen:change", params)
 
 
-class MoverLeftColumn(VerticalScroll):
+class ParserLeftColumn(VerticalScroll):
     ctx: Context
     default_regex: str =  {
         MediaType.SHOW:'[Ss](\d+)[Ee](\d+)',
@@ -60,13 +60,13 @@ class MoverLeftColumn(VerticalScroll):
     def __init__(self, id, ctx):
         super().__init__(id=id)
         self.ctx = ctx
-        self.regex_input = Input(id="mover-input-regex", classes="mover-input", value=self.default_regex[self.ctx.selected['mediatype']])
+        self.regex_input = Input(id="parser-input-regex", classes="parser-input", value=self.default_regex[self.ctx.selected['mediatype']])
 
     def compose(self) -> ComposeResult:
         yield Label("Identifier Regex")
         with RadioSet():
-            yield RadioButton("Movie - Year", classes="mover-radio-mediatype", id="mover-radio-movie", value=(self.ctx.selected["mediatype"] is MediaType.MOVIE))
-            yield RadioButton("Show - Season and Episode (S##E##)", classes="mover-radio-mediatype", id="mover-radio-show", value=(self.ctx.selected["mediatype"] is MediaType.SHOW))
+            yield RadioButton("Movie - Year", classes="parser-radio-mediatype", id="parser-radio-movie", value=(self.ctx.selected["mediatype"] is MediaType.MOVIE))
+            yield RadioButton("Show - Season and Episode (S##E##)", classes="parser-radio-mediatype", id="parser-radio-show", value=(self.ctx.selected["mediatype"] is MediaType.SHOW))
         with Vertical():
             yield self.regex_input
 
@@ -74,34 +74,34 @@ class MoverLeftColumn(VerticalScroll):
         self.__set_active_mediatype()
 
     def on_input_changed(self, event):
-        if event.input.id == "mover-input-regex":
+        if event.input.id == "parser-input-regex":
             self.ctx.regex = event.value
-            self.ctx.emit("mover:regex:changed", {"value": event.value})
+            self.ctx.emit("parser:regex:changed", {"value": event.value})
 
     def on_radio_set_changed(self, event):
         self.__handle_change_mediatype()
 
     def __handle_change_mediatype(self):
-        radios = self.query(".mover-radio-mediatype")
+        radios = self.query(".parser-radio-mediatype")
         for radio in radios:
             if radio.value:
-                if radio.id== "mover-radio-show":
+                if radio.id== "parser-radio-show":
                     sel = MediaType.SHOW
                     self.ctx.set_selected_mediatype(sel)
                     self.regex_input.value = self.default_regex[sel]
-                elif radio.id== "mover-radio-movie":
+                elif radio.id== "parser-radio-movie":
                     sel = MediaType.MOVIE
                     self.ctx.set_selected_mediatype(sel)
                     self.regex_input.value = self.default_regex[sel]
 
     def __set_active_mediatype(self):
-        radios = self.query(".mover-radio-mediatype")
+        radios = self.query(".parser-radio-mediatype")
         for radio in radios:
             # start by resetting radios
             radio.value = False
-            if radio.id == "mover-radio-show" and self.ctx.selected['mediatype'] is MediaType.SHOW:
+            if radio.id == "parser-radio-show" and self.ctx.selected['mediatype'] is MediaType.SHOW:
                 radio.value = True
-            elif radio.id=="mover-radio-movie" and self.ctx.selected['mediatype'] is MediaType.MOVIE:
+            elif radio.id=="parser-radio-movie" and self.ctx.selected['mediatype'] is MediaType.MOVIE:
                 radio.value = True
 
         self.__handle_change_mediatype()
@@ -112,7 +112,7 @@ class FilePartSelector(Vertical):
     def __init__(self, id, ctx):
         super().__init__(id=id)
         self.ctx = ctx
-        self.container = VerticalScroll(id="mover-fileparts-container")
+        self.container = VerticalScroll(id="parser-fileparts-container")
 
     def compose(self)->ComposeResult:
         yield Label("Select Filename Parts")
@@ -142,12 +142,12 @@ class FilePartSelector(Vertical):
             self.container.mount(chk)
 
 
-class MoverFileFields(VerticalScroll):
+class ParserFileFields(VerticalScroll):
     ctx: Context
     def __init__(self, id, ctx):
         super().__init__(id=id)
         self.ctx = ctx
-        self.ctx.on("mover:regex:changed", self.__regex_changed)
+        self.ctx.on("parser:regex:changed", self.__regex_changed)
 
     def on_show(self) -> None:
         self.__build_fields()
@@ -158,11 +158,11 @@ class MoverFileFields(VerticalScroll):
 
         self.ctx.debug_selected_files()
         for fid, file in self.ctx.selected["files"].items():
-            fieldgroup = Vertical(classes="mover-file-fieldgroup")
+            fieldgroup = Vertical(classes="parser-file-fieldgroup")
             self.mount(fieldgroup)
 
             fieldgroup.mount(Label(file.path.name))
-            fieldgroup.mount(Input(id=f"mover-file-{fid}", classes="mover-input", value=file.path.name))
+            fieldgroup.mount(Input(id=f"parser-file-{fid}", classes="parser-input", value=file.path.name))
 
         self.refresh(layout=True)
         self.update_file_fields()
@@ -179,7 +179,7 @@ class MoverFileFields(VerticalScroll):
             self.ctx.logger.write_line(f"ERROR: Invalid regex {e}");
 
         for fid, file in self.ctx.selected["files"].items():
-            finput = self.query_one(f"#mover-file-{fid}")
+            finput = self.query_one(f"#parser-file-{fid}")
             fparts = file.parts.copy()
 
             replacement_string = ""

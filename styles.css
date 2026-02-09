@@ -30,28 +30,28 @@ DirectoryBrowser {
     margin-right:1;
 }
 
-#mover-button-bar{
+#parser-button-bar{
     height: 0.15fr;
     border: solid orange;
 }
-#mover-top-container{
+#parser-top-container{
     height:0.85fr;
     width:1fr;
 }
-#mover-left-column{
+#parser-left-column{
     width:0.4fr;
     height: 1fr;
     border: round purple;
 }
-#mover-right-column{
+#parser-right-column{
     width:0.6fr;
     height: 1fr;
     border: round blue;
 }
-.mover-input{
-    border: solid gray;
+.parser-input{
+    border: solid green;
 }
-.mover-file-fieldgroup{
+.parser-file-fieldgroup{
     height: 4;
     width: 0.9fr;
 }

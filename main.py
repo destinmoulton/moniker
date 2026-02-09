@@ -11,7 +11,7 @@ from textual.containers import HorizontalScroll, VerticalScroll, Vertical, Horiz
 from textual.screen import Screen
 from textual.widgets import Placeholder, DirectoryTree, Log, Checkbox, Button
 
-from mover import Mover
+from parser import Parser
 from settingsform import SettingsForm
 
 
@@ -33,7 +33,7 @@ class MonikerScreen(Screen):
         self.ctx.on("screen:change", self.__change_screen)
         self.settingsform = SettingsForm(self.ctx)
         self.browser = Browser(self.ctx)
-        self.mover = Mover(self.ctx)
+        self.mover = Parser(self.ctx)
         self.destination = Destination(self.ctx)
         self.settingsform.display = False
         self.mover.display = False
