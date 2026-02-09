@@ -19,4 +19,4 @@ Start the environment:
 
 # Testing
 
-Use the included `duplate_tree.sh` script to duplicate a directory tree with files of a specified size.
+Use the included `duplicate_tree.sh` script to duplicate a directory tree with files of a specified size.
