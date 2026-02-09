@@ -4,6 +4,7 @@ from configparser import ConfigParser
 
 class AppConfig:
     def __init__(self):
+        self.appname = "moniker"
         self.filename = "config.ini"
         self.cfgparser = ConfigParser()
         self.fullpath = self.get_full_config_path()
@@ -35,6 +36,10 @@ class AppConfig:
         self.cfgparser.set(section, setting, value)
 
     def save(self):
+        xdgpath = self.get_xdg_config_path()
+        if not os.path.exists(xdgpath):
+            os.makedirs(xdgpath)
+
         with open(self.fullpath, 'w') as f:
             self.cfgparser.write(f)
 
@@ -42,10 +47,14 @@ class AppConfig:
         configfile = Path(self.get_full_config_path())
         return configfile.exists()
 
-    def get_full_config_path(self):
+    def get_xdg_config_path(self)->str:
         _home = os.path.expanduser('~')
 
         xdgpath = os.environ.get('XDG_CONFIG_HOME') or \
-                    os.path.join(_home, '.config')
+                  os.path.join(_home,  '.config')
 
+        return os.path.join(xdgpath, self.appname)
+
+    def get_full_config_path(self):
+        xdgpath = self.get_xdg_config_path()
         return os.path.join(xdgpath, self.filename)

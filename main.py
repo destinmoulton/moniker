@@ -39,6 +39,8 @@ class MonikerScreen(Screen):
         self.mover.display = False
         self.destination.display = False
 
+
+
     def compose(self) -> ComposeResult:
         yield Header(id="Header", label="Moniker")
         with Horizontal(id="screen-container"):
@@ -48,6 +50,7 @@ class MonikerScreen(Screen):
             yield self.destination
 
         yield self.ctx.logger
+
 
         if not self.ctx.config.is_configured():
             self.__change_screen({"screen":"settingsform"})
