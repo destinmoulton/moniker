@@ -44,6 +44,7 @@ class ParserButtonBar(Horizontal):
     def on_button_pressed(self, event: Button.Pressed)->None:
         if event.button.id == "parser-button-back":
             params = {"screen":"browser"}
+            self.ctx.reset_possible()
             self.ctx.emit("screen:change", params)
         elif event.button.id =="parser-button-next":
             params = {"screen":"destination"}
@@ -61,6 +62,7 @@ class ParserLeftColumn(VerticalScroll):
         super().__init__(id=id)
         self.ctx = ctx
         self.regex_input = Input(id="parser-input-regex", classes="parser-input", value=self.default_regex[self.ctx.selected['mediatype']])
+        self.movieshowdetails = MovieShowDetails(id="parser-movieshow-details", ctx=self.ctx)
 
     def compose(self) -> ComposeResult:
         yield Label("Identifier Regex")
@@ -69,6 +71,7 @@ class ParserLeftColumn(VerticalScroll):
             yield RadioButton("Show - Season and Episode (S##E##)", classes="parser-radio-mediatype", id="parser-radio-show", value=(self.ctx.selected["mediatype"] is MediaType.SHOW))
         with Vertical():
             yield self.regex_input
+        yield self.movieshowdetails
 
     def _on_show(self, event: events.Show) -> None:
         self.__set_active_mediatype()
@@ -77,9 +80,11 @@ class ParserLeftColumn(VerticalScroll):
         if event.input.id == "parser-input-regex":
             self.ctx.regex = event.value
             self.ctx.emit("parser:regex:changed", {"value": event.value})
+            self.movieshowdetails.update_fields()
 
     def on_radio_set_changed(self, event):
         self.__handle_change_mediatype()
+        self.movieshowdetails.toggle_section()
 
     def __handle_change_mediatype(self):
         radios = self.query(".parser-radio-mediatype")
@@ -105,6 +110,57 @@ class ParserLeftColumn(VerticalScroll):
                 radio.value = True
 
         self.__handle_change_mediatype()
+
+class MovieShowDetails(Vertical):
+    ctx: Context
+    def __init__(self, id, ctx):
+        super().__init__(id=id)
+        self.ctx = ctx
+        self.movie_details = Vertical()
+        self.show_details = Vertical()
+        self.movie_details.display = False
+        self.movie_details.display = False
+
+    def compose(self) -> ComposeResult:
+        possible_title = self.ctx.get_possible_name()
+        yield Label("Parsed Possible Title",
+                            classes="parser-details-widget")
+        yield Input(id="parser-possible-title",
+                            classes="parser-details-widget",
+                            value=possible_title)
+        with self.movie_details:
+            yield Label("Parsed Movie Year",
+                               classes = "parser-details-widget")
+            yield Input(id="parser-possible-year",
+                               classes="parser-details-widget",
+                               value=self.ctx.possible['year'])
+        with self.show_details:
+            yield Label("Parsed Show Season",
+                                 classes="parser-details-widget")
+            yield Input(id="parser-possible-season",
+                                 classes="parser-details-widget",
+                                 value=self.ctx.possible['season'])
+
+    def toggle_section(self):
+        if self.ctx.selected['mediatype'] is MediaType.MOVIE:
+            self.movie_details.display = True
+            self.show_details.display = False
+        elif self.ctx.selected['mediatype'] is MediaType.SHOW:
+            self.movie_details.display = False
+            self.show_details.display = True
+
+    def update_fields(self):
+        possible_title = self.ctx.get_possible_name()
+        field_title = self.query_one("#parser-possible-title")
+        field_title.value = possible_title
+
+        if self.ctx.selected['mediatype'] is MediaType.MOVIE:
+            field_year = self.query_one("#parser-possible-year")
+            field_year.value = self.ctx.possible['year']
+        elif self.ctx.selected['mediatype'] is MediaType.SHOW:
+            field_season = self.query_one("#parser-possible-season")
+            field_season.value = self.ctx.possible['season']
+
 
 
 class FilePartSelector(Vertical):

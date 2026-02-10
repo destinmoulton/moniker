@@ -43,6 +43,16 @@ class Context:
             for func in self.events[event_name]:
                 func(event_data)
 
+    def reset_selected(self):
+        self.selected['path'] = ""
+        self.selected['files'] = {}
+        self.selected['mediatype'] = MediaType.MOVIE
+
+    def reset_possible(self):
+        self.possible['season'] = ""
+        self.possible['year'] = ""
+        self.possible['nameparts'] = []
+
     def set_selected_path(self, path: str):
         """ Set the selected path"""
         self.selected['path'] = path
@@ -73,4 +83,9 @@ class Context:
         self.possible['year'] = year
 
     def set_possible_nameparts(self, name_parts: list):
-        self.possible['nameparts'] = name_parts
+        for prt in name_parts:
+            if prt not in self.possible['nameparts']:
+                self.possible['nameparts'].append(prt)
+
+    def get_possible_name(self):
+        return ".".join(self.possible['nameparts'])
