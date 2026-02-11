@@ -16,7 +16,6 @@ class Confirm(Vertical):
         self.ctx = ctx
         self.destination = ""
 
-
     def compose(self) -> ComposeResult:
         with Vertical():
             yield Label("Destination Path")
@@ -24,14 +23,15 @@ class Confirm(Vertical):
                         value="",
                         disabled=True)
         yield VerticalScroll(id="confirm-source-files")
-        yield VerticalScroll(id="confirm-final-files")
+        yield VerticalScroll(id="confirm-destination-files")
 
         yield ConfirmButtonBar(id="confirm-button-bar", ctx=self.ctx)
 
     def _on_show(self, event: events.Show) -> None:
         self.update_destination_path()
         self.update_fields()
-        self.update_source_files()
+        self.update_list_source_files()
+        self.update_list_destination_files()
 
     def update_fields(self):
         input_path = self.query_one("#confirm-path")
@@ -58,12 +58,19 @@ class Confirm(Vertical):
         else:
             self.destination = os.path.join(base, dir)
 
-    def update_source_files(self):
+    def update_list_source_files(self):
         container = self.query_one("#confirm-source-files")
         for fid, file in self.ctx.selected["files"].items():
             label = Label(str(file.path))
             container.mount(label)
 
+    def update_list_destination_files(self):
+        container = self.query_one("#confirm-destination-files")
+        for fid, file in self.ctx.selected["files"].items():
+            filename = self.ctx.final['filenames'][fid]
+            fullpath = os.path.join(self.destination, filename)
+            label = Label(str(fullpath))
+            container.mount(label)
 
 class ConfirmButtonBar(Horizontal):
     ctx: Context
@@ -74,12 +81,12 @@ class ConfirmButtonBar(Horizontal):
 
     def compose(self) -> ComposeResult:
         yield Button(label="Back", id="confirm-button-back")
-        yield Button(label="Do It!", id="confirm-button-next", variant="success")
+        yield Button(label="Do It!", id="confirm-button-doit", variant="success")
 
     def on_button_pressed(self, event: Button.Pressed)->None:
         if event.button.id == "confirm-button-back":
             params = {"screen":"mover"}
             self.ctx.emit("screen:change", params)
-        elif event.button.id =="confirm-button-next":
+        elif event.button.id =="confirm-button-doit":
             params = {"screen":"preview"}
             self.ctx.emit("screen:change", params)
