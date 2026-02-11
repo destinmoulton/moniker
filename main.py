@@ -2,7 +2,7 @@ import argparse
 
 from appconfig import AppConfig
 from browser import Browser
-from destination import Destination
+from confirm import Confirm
 from logger import Logger
 from context import Context
 
@@ -34,7 +34,7 @@ class MonikerScreen(Screen):
         self.settingsform = SettingsForm(self.ctx)
         self.browser = Browser(self.ctx)
         self.mover = Parser(self.ctx)
-        self.destination = Destination(self.ctx)
+        self.destination = Confirm(self.ctx)
         self.settingsform.display = False
         self.mover.display = False
         self.destination.display = False

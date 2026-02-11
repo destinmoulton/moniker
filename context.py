@@ -22,10 +22,16 @@ class Context:
         "files":{},
         "mediatype":MediaType.MOVIE,
     }
-    possible = {
+    parsed = {
         "season":"",
         "year":"",
         "nameparts":[]
+    }
+    final = {
+        "media_title":"",
+        "season":"",
+        "year":"",
+        "filenames":{}
     }
     regex: str = ""
 
@@ -49,9 +55,16 @@ class Context:
         self.selected['mediatype'] = MediaType.MOVIE
 
     def reset_possible(self):
-        self.possible['season'] = ""
-        self.possible['year'] = ""
-        self.possible['nameparts'] = []
+        self.parsed['title'] = ""
+        self.parsed['season'] = ""
+        self.parsed['year'] = ""
+        self.parsed['nameparts'] = []
+
+    def reset_final(self):
+        self.final['media_title'] = ""
+        self.final['season'] = ""
+        self.final['year'] = ""
+        self.final['filenames'] = {}
 
     def set_selected_path(self, path: str):
         """ Set the selected path"""
@@ -76,16 +89,21 @@ class Context:
     def set_selected_mediatype(self, mediatype: MediaType):
         self.selected['mediatype'] = mediatype
 
-    def set_possible_season(self, season: str):
-        self.possible['season'] = season
+    def set_possible_title(self, title: str):
+        self.parsed['title'] = title
 
-    def set_possible_year(self, year: str):
-        self.possible['year'] = year
+    def set_parsed_season(self, season: str):
+        self.parsed['season'] = season
 
-    def set_possible_nameparts(self, name_parts: list):
+    def set_parsed_year(self, year: str):
+        self.parsed['year'] = year
+
+    def set_parsed_nameparts(self, name_parts: list):
         for prt in name_parts:
-            if prt not in self.possible['nameparts']:
-                self.possible['nameparts'].append(prt)
+            if prt not in self.parsed['nameparts']:
+                self.parsed['nameparts'].append(prt)
+
+        self.parsed['title'] = self.get_possible_name()
 
     def get_possible_name(self):
-        return ".".join(self.possible['nameparts'])
+        return ".".join(self.parsed['nameparts'])

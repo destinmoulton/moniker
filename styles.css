@@ -56,11 +56,11 @@ DirectoryBrowser {
     width: 0.9fr;
 }
 
-#destination-top-container{
+#confirm-top-container{
     height: 0.85fr;
     border: solid blue;
 }
-#destination-button-bar{
+#confirm-button-bar{
     height: 0.15fr;
     border: solid orange;
 }

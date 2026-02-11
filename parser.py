@@ -49,6 +49,7 @@ class ParserButtonBar(Horizontal):
         elif event.button.id =="parser-button-next":
             params = {"screen":"destination"}
             self.ctx.emit("screen:change", params)
+            self.ctx.emit("parser:save", {})
 
 
 class ParserLeftColumn(VerticalScroll):
@@ -120,6 +121,7 @@ class MovieShowDetails(Vertical):
         self.show_details = Vertical()
         self.movie_details.display = False
         self.movie_details.display = False
+        self.ctx.on("parser:save", self.__save_mediadata)
 
     def compose(self) -> ComposeResult:
         possible_title = self.ctx.get_possible_name()
@@ -132,14 +134,14 @@ class MovieShowDetails(Vertical):
             yield Label("Parsed Movie Year",
                                classes = "parser-details-widget")
             yield Input(id="parser-possible-year",
-                               classes="parser-details-widget",
-                               value=self.ctx.possible['year'])
+                        classes="parser-details-widget",
+                        value=self.ctx.parsed['year'])
         with self.show_details:
             yield Label("Parsed Show Season",
                                  classes="parser-details-widget")
             yield Input(id="parser-possible-season",
-                                 classes="parser-details-widget",
-                                 value=self.ctx.possible['season'])
+                        classes="parser-details-widget",
+                        value=self.ctx.parsed['season'])
 
     def toggle_section(self):
         if self.ctx.selected['mediatype'] is MediaType.MOVIE:
@@ -156,11 +158,18 @@ class MovieShowDetails(Vertical):
 
         if self.ctx.selected['mediatype'] is MediaType.MOVIE:
             field_year = self.query_one("#parser-possible-year")
-            field_year.value = self.ctx.possible['year']
+            field_year.value = self.ctx.parsed['year']
         elif self.ctx.selected['mediatype'] is MediaType.SHOW:
             field_season = self.query_one("#parser-possible-season")
-            field_season.value = self.ctx.possible['season']
+            field_season.value = self.ctx.parsed['season']
 
+    def __save_mediadata(self, event):
+        field_title = self.query_one("#parser-possible-title")
+        field_year = self.query_one("#parser-possible-year")
+        field_season = self.query_one("#parser-possible-season")
+        self.ctx.final['media_title'] = field_title.value
+        self.ctx.final['season'] = field_season.value
+        self.ctx.final['year'] = field_year.value
 
 
 class FilePartSelector(Vertical):
@@ -204,6 +213,7 @@ class ParserFileFields(VerticalScroll):
         super().__init__(id=id)
         self.ctx = ctx
         self.ctx.on("parser:regex:changed", self.__regex_changed)
+        self.ctx.on("parser:save", self.__save_fielddata)
 
     def on_show(self) -> None:
         self.__build_fields()
@@ -225,6 +235,13 @@ class ParserFileFields(VerticalScroll):
 
     def __regex_changed(self, event)->None:
         self.update_file_fields()
+
+    def __save_fielddata(self, event)->None:
+        self.ctx.final['filenames'] = {}
+
+        for fid, file in self.ctx.selected["files"].items():
+            input = self.query_one(f"#parser-file-{fid}")
+            self.ctx.final['filenames'][fid] = input.value
 
     def update_file_fields(self)->None:
         regex = None
@@ -256,7 +273,7 @@ class ParserFileFields(VerticalScroll):
                 fparts = fparts[:replacement_idx]
 
                 # store the possible filename parts
-                self.ctx.set_possible_nameparts(fparts.copy())
+                self.ctx.set_parsed_nameparts(fparts.copy())
 
                 fparts.append(replacement_string)
                 fparts.append(file.ext)
@@ -275,7 +292,7 @@ class ParserFileFields(VerticalScroll):
             episode = str(epnum)
             if (epnum < 10):
                 episode = "0" + episode
-            self.ctx.set_possible_season(season)
+            self.ctx.set_parsed_season(season)
             return True, f"S{season}E{episode}"
         return False, ""
 
@@ -283,6 +300,6 @@ class ParserFileFields(VerticalScroll):
     def __match_movie_year(self, match:re.Match)->Tuple[bool, str]:
         if len(match.groups()) == 1:
             year = match.group(1)
-            self.ctx.set_possible_year(year)
+            self.ctx.set_parsed_year(year)
             return True, f"{year}"
         return False, ""
