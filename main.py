@@ -33,11 +33,11 @@ class MonikerScreen(Screen):
         self.ctx.on("screen:change", self.__change_screen)
         self.settingsform = SettingsForm(self.ctx)
         self.browser = Browser(self.ctx)
-        self.mover = Parser(self.ctx)
-        self.destination = Confirm(self.ctx)
+        self.parser = Parser(self.ctx)
+        self.confirm = Confirm(self.ctx)
         self.settingsform.display = False
-        self.mover.display = False
-        self.destination.display = False
+        self.parser.display = False
+        self.confirm.display = False
 
 
 
@@ -46,8 +46,8 @@ class MonikerScreen(Screen):
         with Horizontal(id="screen-container"):
             yield self.settingsform
             yield self.browser
-            yield self.mover
-            yield self.destination
+            yield self.parser
+            yield self.confirm
 
         yield self.ctx.logger
 
@@ -60,23 +60,23 @@ class MonikerScreen(Screen):
         if event["screen"] == "settingsform":
             self.settingsform.display = True
             self.browser.display = False
-            self.mover.display = False
-            self.destination.display = False
-        elif event["screen"] == "mover":
+            self.parser.display = False
+            self.confirm.display = False
+        elif event["screen"] == "parser":
             self.settingsform.display = False
             self.browser.display = False
-            self.mover.display = True
-            self.destination.display = False
+            self.parser.display = True
+            self.confirm.display = False
         elif event["screen"] == "browser":
             self.settingsform.display = False
             self.browser.display = True
-            self.mover.display = False
-            self.destination.display = False
+            self.parser.display = False
+            self.confirm.display = False
         elif event["screen"] == "destination":
             self.settingsform.display = False
             self.browser.display = False
-            self.mover.display = False
-            self.destination.display = True
+            self.parser.display = False
+            self.confirm.display = True
 
         self.ctx.emit("screen:change:complete", event)
 
