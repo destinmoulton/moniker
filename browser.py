@@ -64,18 +64,20 @@ class FileSelector(VerticalScroll):
         super().__init__(id=id)
         self.ctx = ctx
         self.ctx.on("browser:directory-changed", self.__directory_changed);
+        self.ctx.on("browser:refresh", self.__refresh)
+        self.current_directory: Path = None
 
     def __directory_changed(self, event) -> None:
-        path: PosixPath = event['path']
+        self.current_directory = event['path']
         self.ctx.clear_selected_files()
-        self.update_files_list(path)
+        self.__refresh({})
 
-    def update_files_list(self, directory: Path):
+    def __refresh(self, event):
         # remove existing checkboxes
         self.query(Checkbox).remove()
 
-        if directory.is_dir():
-            for file_path in sorted(directory.iterdir()):
+        if self.current_directory.is_dir():
+            for file_path in sorted(self.current_directory.iterdir()):
                 if file_path.is_file():
                     file = File(file_path)
                     is_mediafile = self.should_preselect_file(file_path)
@@ -136,7 +138,7 @@ class FileSelectorButtonBar(Horizontal):
             type = MediaType.SHOW
             self.ctx.set_selected_mediatype(MediaType.SHOW)
 
-        params = {"screen":"mover", "type":type}
+        params = {"screen":"parser", "type":type}
         self.ctx.emit("screen:change", params)
 
     def __directory_changed(self, event: DirectoryTree.DirectorySelected) -> None:

@@ -62,17 +62,19 @@ class MonikerScreen(Screen):
             self.browser.display = False
             self.parser.display = False
             self.confirm.display = False
+        elif event["screen"] == "browser":
+            self.ctx.reset_all()
+            self.ctx.emit("browser:refresh", {})
+            self.settingsform.display = False
+            self.browser.display = True
+            self.parser.display = False
+            self.confirm.display = False
         elif event["screen"] == "parser":
             self.settingsform.display = False
             self.browser.display = False
             self.parser.display = True
             self.confirm.display = False
-        elif event["screen"] == "browser":
-            self.settingsform.display = False
-            self.browser.display = True
-            self.parser.display = False
-            self.confirm.display = False
-        elif event["screen"] == "destination":
+        elif event["screen"] == "confirm":
             self.settingsform.display = False
             self.browser.display = False
             self.parser.display = False

@@ -15,15 +15,17 @@ class Confirm(Vertical):
         super().__init__()
         self.ctx = ctx
         self.destination = ""
+        self.ctx.on("confirm:doit", self.__perform_file_actions)
 
     def compose(self) -> ComposeResult:
-        with Vertical():
-            yield Label("Destination Path")
-            yield Input(id="confirm-path",
-                        value="",
-                        disabled=True)
-        yield VerticalScroll(id="confirm-source-files")
-        yield VerticalScroll(id="confirm-destination-files")
+        with Vertical(id="confirm-top-container"):
+            with Vertical():
+                yield Label("Destination Path")
+                yield Input(id="confirm-path",
+                            value="",
+                            disabled=True)
+            yield VerticalScroll(id="confirm-source-files")
+            yield VerticalScroll(id="confirm-destination-files")
 
         yield ConfirmButtonBar(id="confirm-button-bar", ctx=self.ctx)
 
@@ -72,6 +74,22 @@ class Confirm(Vertical):
             label = Label(str(fullpath))
             container.mount(label)
 
+    def __perform_file_actions(self, event):
+        if not os.path.exists(self.destination):
+            os.makedirs(self.destination)
+
+        for fid, file in self.ctx.selected["files"].items():
+            srcpath = str(file.path)
+            newfilename = self.ctx.final['filenames'][fid]
+            destpath = os.path.join(self.destination, newfilename)
+            os.rename(srcpath, destpath)
+            if os.path.exists(destpath):
+                self.ctx.logger.write_line(f"SUCCESS: moved {srcpath} to {destpath}")
+            else:
+                self.ctx.logger.write_line(f"ERROR: failed to move {srcpath} to {destpath}")
+
+
+
 class ConfirmButtonBar(Horizontal):
     ctx: Context
 
@@ -85,8 +103,9 @@ class ConfirmButtonBar(Horizontal):
 
     def on_button_pressed(self, event: Button.Pressed)->None:
         if event.button.id == "confirm-button-back":
-            params = {"screen":"mover"}
+            params = {"screen":"parser"}
             self.ctx.emit("screen:change", params)
         elif event.button.id =="confirm-button-doit":
-            params = {"screen":"preview"}
+            params = {"screen":"browser"}
+            self.ctx.emit("confirm:doit", {})
             self.ctx.emit("screen:change", params)

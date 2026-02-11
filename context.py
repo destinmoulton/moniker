@@ -49,6 +49,11 @@ class Context:
             for func in self.events[event_name]:
                 func(event_data)
 
+    def reset_all(self):
+        self.reset_selected()
+        self.reset_possible()
+        self.reset_final()
+
     def reset_selected(self):
         self.selected['path'] = ""
         self.selected['files'] = {}

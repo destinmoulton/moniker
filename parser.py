@@ -47,7 +47,7 @@ class ParserButtonBar(Horizontal):
             self.ctx.reset_possible()
             self.ctx.emit("screen:change", params)
         elif event.button.id =="parser-button-next":
-            params = {"screen":"destination"}
+            params = {"screen":"confirm"}
             self.ctx.emit("screen:change", params)
             self.ctx.emit("parser:save", {})
 
@@ -292,7 +292,7 @@ class ParserFileFields(VerticalScroll):
             episode = str(epnum)
             if (epnum < 10):
                 episode = "0" + episode
-            self.ctx.set_parsed_season(season)
+            self.ctx.set_parsed_season(f"S{season}")
             return True, f"S{season}E{episode}"
         return False, ""
 
