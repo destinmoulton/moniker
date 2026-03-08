@@ -119,11 +119,11 @@ class FileSelectorButtonBar(Horizontal):
         self.ctx.on("browser:directory-changed", self.__directory_changed)
 
     def compose(self) -> ComposeResult:
-        yield Button(label="Move Movie",
+        yield Button(label="ID Movie",
                      classes="browser-button-move",
                      variant="primary",
                      id="button-move-movie")
-        yield Button(label="Move Show Episodes",
+        yield Button(label="ID Show Episodes",
                      classes="browser-button-move",
                      variant="success",
                      id="button-move-show")
