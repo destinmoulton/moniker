@@ -1,4 +1,5 @@
 import argparse
+import re
 from enum import Enum
 from pathlib import PosixPath
 from typing import Callable
@@ -11,6 +12,11 @@ class MediaType(Enum):
     MOVIE = "movie"
     SHOW = "show"
 
+MediaTypeRegex = {
+    MediaType.SHOW: '[Ss](\\d+)[Ee](\\d+)',
+    MediaType.MOVIE: '(19[0-9]{2}|2[0-9]{3})'
+}
+
 class Context:
     """ Shared context object"""
     logger: Logger
@@ -22,18 +28,17 @@ class Context:
         "files":{},
         "mediatype":MediaType.MOVIE,
     }
-    parsed = {
+    guessed = {
+        "title":"",
         "season":"",
         "year":"",
-        "nameparts":[]
+        "episodes":{}
     }
-    final = {
-        "media_title":"",
-        "season":"",
-        "year":"",
-        "filenames":{}
+    regex = {
+        "is_valid":True,
+        "string":"",
+        "pattern":re.Pattern
     }
-    regex: str = ""
 
     def on(self, event_name, event_fun):
         """ Register an event """
@@ -51,7 +56,7 @@ class Context:
 
     def reset_all(self):
         self.reset_selected()
-        self.reset_possible()
+        self.reset_guessed()
         self.reset_final()
 
     def reset_selected(self):
@@ -59,11 +64,11 @@ class Context:
         self.selected['files'] = {}
         self.selected['mediatype'] = MediaType.MOVIE
 
-    def reset_possible(self):
-        self.parsed['title'] = ""
-        self.parsed['season'] = ""
-        self.parsed['year'] = ""
-        self.parsed['nameparts'] = []
+    def reset_guessed(self):
+        self.guessed['season'] = ""
+        self.guessed['year'] = ""
+        self.guessed['title'] = ""
+        self.guessed['episodes'] = {}
 
     def reset_final(self):
         self.final['media_title'] = ""
@@ -94,21 +99,14 @@ class Context:
     def set_selected_mediatype(self, mediatype: MediaType):
         self.selected['mediatype'] = mediatype
 
-    def set_possible_title(self, title: str):
-        self.parsed['title'] = title
+    def set_guessed_title(self, title: str):
+        self.guessed['title'] = title
 
-    def set_parsed_season(self, season: str):
-        self.parsed['season'] = season
+    def set_guessed_season(self, season: str):
+        self.guessed['season'] = season
 
-    def set_parsed_year(self, year: str):
-        self.parsed['year'] = year
+    def set_guessed_year(self, year: str):
+        self.guessed['year'] = year
 
-    def set_parsed_nameparts(self, name_parts: list):
-        for prt in name_parts:
-            if prt not in self.parsed['nameparts']:
-                self.parsed['nameparts'].append(prt)
-
-        self.parsed['title'] = self.get_possible_name()
-
-    def get_possible_name(self):
-        return ".".join(self.parsed['nameparts'])
+    def set_guessed_episode(self, fid: str, episode: str):
+        self.guessed['episodes'][fid] = episode

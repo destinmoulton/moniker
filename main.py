@@ -11,7 +11,7 @@ from textual.containers import HorizontalScroll, VerticalScroll, Vertical, Horiz
 from textual.screen import Screen
 from textual.widgets import Placeholder, DirectoryTree, Log, Checkbox, Button
 
-from parser import Parser
+from filename_editor import FilenameEditor
 from settingsform import SettingsForm
 
 
@@ -33,10 +33,10 @@ class MonikerScreen(Screen):
         self.ctx.on("screen:change", self.__change_screen)
         self.settingsform = SettingsForm(self.ctx)
         self.browser = Browser(self.ctx)
-        self.parser = Parser(self.ctx)
+        self.filename_editor = FilenameEditor(self.ctx)
         self.confirm = Confirm(self.ctx)
         self.settingsform.display = False
-        self.parser.display = False
+        self.filename_editor.display = False
         self.confirm.display = False
 
 
@@ -46,7 +46,7 @@ class MonikerScreen(Screen):
         with Horizontal(id="screen-container"):
             yield self.settingsform
             yield self.browser
-            yield self.parser
+            yield self.filename_editor
             yield self.confirm
 
         yield self.ctx.logger
@@ -60,24 +60,24 @@ class MonikerScreen(Screen):
         if event["screen"] == "settingsform":
             self.settingsform.display = True
             self.browser.display = False
-            self.parser.display = False
+            self.filename_editor.display = False
             self.confirm.display = False
         elif event["screen"] == "browser":
             self.ctx.reset_all()
             self.ctx.emit("browser:refresh", {})
             self.settingsform.display = False
             self.browser.display = True
-            self.parser.display = False
+            self.filename_editor.display = False
             self.confirm.display = False
         elif event["screen"] == "parser":
             self.settingsform.display = False
             self.browser.display = False
-            self.parser.display = True
+            self.filename_editor.display = True
             self.confirm.display = False
         elif event["screen"] == "confirm":
             self.settingsform.display = False
             self.browser.display = False
-            self.parser.display = False
+            self.filename_editor.display = False
             self.confirm.display = True
 
         self.ctx.emit("screen:change:complete", event)

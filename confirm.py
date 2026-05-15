@@ -46,12 +46,12 @@ class Confirm(Vertical):
         subdir = ""
         if self.ctx.selected['mediatype']==MediaType.MOVIE:
             base = self.ctx.config.get("paths", "movies")
-            suffix = self.ctx.parsed["year"]
+            suffix = self.ctx.guessed["year"]
         elif self.ctx.selected['mediatype']==MediaType.SHOW:
             base = self.ctx.config.get("paths", "shows")
-            subdir = self.ctx.parsed["season"]
+            subdir = self.ctx.guessed["season"]
 
-        dir = f"{self.ctx.parsed["title"]}"
+        dir = f"{self.ctx.guessed["title"]}"
         if suffix != "":
             dir = f"{dir}.{suffix}"
 

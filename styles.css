@@ -39,12 +39,12 @@ DirectoryBrowser {
     width:1fr;
 }
 #parser-left-column{
-    width:0.4fr;
+    width:0.3fr;
     height: 1fr;
     border: round purple;
 }
 #parser-right-column{
-    width:0.6fr;
+    width:0.7fr;
     height: 1fr;
     border: round blue;
 }
@@ -52,7 +52,8 @@ DirectoryBrowser {
     border: solid green;
 }
 .parser-file-fieldgroup{
-    height: 4;
+    height: 5;
+    padding-bottom: 1;
     width: 0.9fr;
 }
 
