@@ -267,6 +267,9 @@ class FilenameFields(VerticalScroll):
     def on_show(self) -> None:
         self.__build_fields()
 
+    def on_input_changed(self, event)->None:
+        self.ctx.set_final_filename(event.input.data['fid'], event.input.value)
+
     def __build_fields(self)->None:
         # Clear the verticals from the container
         self.query(Vertical).remove()
@@ -277,7 +280,13 @@ class FilenameFields(VerticalScroll):
             self.mount(fieldgroup)
 
             fieldgroup.mount(Label(content=file.path.name, classes="parser-file-original"))
-            fieldgroup.mount(Input(id=f"parser-file-{fid}", classes="parser-input", value=file.path.name, disabled=True))
+
+            filename_initial_value = file.path.name
+            filename_input = Input(id=f"parser-file-{fid}", classes="parser-input", value=filename_initial_value)
+            filename_input.data = {"fid":fid}
+
+            fieldgroup.mount(filename_input)
+            self.ctx.set_final_filename(fid, filename_initial_value)
 
         self.refresh(layout=True)
         self.__update_file_fields()
@@ -298,11 +307,14 @@ class FilenameFields(VerticalScroll):
     def __update_file_fields(self)->None:
         filename_prefix = self.ctx.guessed['title']
         for fid, file in self.ctx.selected["files"].items():
-            self.ctx.logger.write_line(file.path.name)
             finput = self.query_one(f"#parser-file-{fid}")
 
             ext = file.ext
-            filename = f"{file.path.name}"
+            if fid in self.ctx.final_filenames:
+                filename = self.ctx.final_filenames[fid]
+            else:
+                filename = f"{file.path.name}"
+
             if self.ctx.selected['mediatype']==MediaType.SHOW:
                 season = self.ctx.guessed['season']
                 if fid in self.ctx.guessed['episodes']:
@@ -313,4 +325,5 @@ class FilenameFields(VerticalScroll):
                 year = self.ctx.guessed['year']
                 filename = f"{filename_prefix}.{year}.{ext}"
 
+            self.ctx.set_final_filename(fid, filename)
             finput.value = filename

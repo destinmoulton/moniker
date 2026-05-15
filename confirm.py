@@ -62,14 +62,16 @@ class Confirm(Vertical):
 
     def update_list_source_files(self):
         container = self.query_one("#confirm-source-files")
+        container.remove_children()
         for fid, file in self.ctx.selected["files"].items():
             label = Label(str(file.path))
             container.mount(label)
 
     def update_list_destination_files(self):
         container = self.query_one("#confirm-destination-files")
+        container.remove_children()
         for fid, file in self.ctx.selected["files"].items():
-            filename = self.ctx.final['filenames'][fid]
+            filename = self.ctx.final_filenames[fid]
             fullpath = os.path.join(self.destination, filename)
             label = Label(str(fullpath))
             container.mount(label)

@@ -34,6 +34,7 @@ class Context:
         "year":"",
         "episodes":{}
     }
+    final_filenames = {}
     regex = {
         "is_valid":True,
         "string":"",
@@ -110,3 +111,6 @@ class Context:
 
     def set_guessed_episode(self, fid: str, episode: str):
         self.guessed['episodes'][fid] = episode
+
+    def set_final_filename(self, fid: str, filename: str):
+        self.final_filenames[fid] = filename
