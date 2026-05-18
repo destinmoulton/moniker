@@ -82,7 +82,7 @@ class Confirm(Vertical):
 
         for fid, file in self.ctx.selected["files"].items():
             srcpath = str(file.path)
-            newfilename = self.ctx.final['filenames'][fid]
+            newfilename = self.ctx.final_filenames[fid]
             destpath = os.path.join(self.destination, newfilename)
             os.rename(srcpath, destpath)
             if os.path.exists(destpath):

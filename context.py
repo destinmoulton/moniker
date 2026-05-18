@@ -72,10 +72,7 @@ class Context:
         self.guessed['episodes'] = {}
 
     def reset_final(self):
-        self.final['media_title'] = ""
-        self.final['season'] = ""
-        self.final['year'] = ""
-        self.final['filenames'] = {}
+        self.final_filenames = {}
 
     def set_selected_path(self, path: str):
         """ Set the selected path"""

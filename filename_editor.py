@@ -158,7 +158,9 @@ class RegexWidget(Vertical):
                 # clean up the title
                 title = file.path.name[:title_end_idx]
                 # remove whitespace from ends
-                title = title.strip()
+                title = title.strip(" ")
+                # remove periods from end
+                title = title.strip(".")
                 # replace spaces with periods
                 title = title.replace(" ", ".")
 
