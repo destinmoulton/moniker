@@ -7,11 +7,12 @@ import glob
 opencv_libs = glob.glob('/usr/lib/libopencv_*.so*')
 binaries = [(lib, '.') for lib in opencv_libs]
 
-# Collect the data files that textual needs (ie .css files)
-datas = collect_data_files('textual')
-
 hiddenimports = []
 tmp_ret = collect_all('cv2')
+
+# Collect the data files that textual needs (ie .css files)
+datas = [('styles.css', '.')]
+
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
 
