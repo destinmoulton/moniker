@@ -14,23 +14,19 @@ shows =
 ## venv
 Start the environment:
 ```shell
-. .venv/bin/activate
+source .venv/bin/activate
 ```
 
 # Testing
 
 Use the included `duplicate_tree.sh` script to duplicate a directory tree with files of a specified size.
 
-# Build
+# Installing
 
-Use `pyinstaller` to build into a `moniker` distributable.
+Use `pip` to install from requirements.txt.
 
 ```shell
-pyinstaller main.spec
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
-
-Build is in `dist` (ie `dist/moniker`)
-
-`main.spec` configures the pyinstaller.
-
-Note: There are specific configuration values in `main.spec` for including binaries (.so files) and the `style.css` data file.

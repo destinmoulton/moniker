@@ -51,7 +51,8 @@ class Confirm(Vertical):
             base = self.ctx.config.get("paths", "shows")
             subdir = self.ctx.guessed["season"]
 
-        dir = f"{self.ctx.guessed["title"]}"
+        tmptitle = self.ctx.guessed["title"]
+        dir = f"{tmptitle}"
         if suffix != "":
             dir = f"{dir}.{suffix}"
 
